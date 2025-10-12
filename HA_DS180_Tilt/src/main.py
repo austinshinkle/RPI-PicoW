@@ -67,7 +67,7 @@ wlan.active(True)
 led.value(True)
 sleep(5)
 wlan.connect(ssid, password)
-sleep(5)
+sleep(15)
 led.value(False)
 
 # Wait for connection
@@ -105,7 +105,7 @@ def mqtt_connect():
     return client
 
 def reconnect():
-    sleep(5)
+    sleep(15)
     machine.reset()
 
 def parse_tilt_data(manufacturer_data):
