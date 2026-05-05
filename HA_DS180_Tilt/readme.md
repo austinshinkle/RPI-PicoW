@@ -1,13 +1,13 @@
 # Software Setup for RPI Pico W
 
-## 1. Download Micropython firmware to RPI Pico W
+## 1. Download MicroPython Firmware
 Put the device into BOOT mode and copy the correct UF2 file (named something like RPI_PICO_W-20241025-v1.24.0.uf2) onto the system. If this is a new RPI Pico W, it will automatically start in BOOT mode. Additional instructions can be found on the official Raspberry Pi website <https://www.raspberrypi.com/documentation/microcontrollers/micropython.html#drag-and-drop-micropython>
 
-## 2. Install the umqtt.simple micropython library
-From Thonny, go to "Tools...Manage packages...", search for "micropython-umqtt.simple" and install it
+## 2. Install Required MicroPython Library
+From Thonny, go to "Tools...Manage packages...", search for "micropython-umqtt.simple" and install it.
 
-## 3. Configure credentials and broker settings
-Copy src/config.yaml.example to src/config.yaml and update values for:
+## 3. Configure Credentials and Broker Settings
+Ensure `src/config.yaml` has valid values for:
 - wifi_ssid
 - wifi_password
 - hostname
@@ -18,62 +18,86 @@ Copy src/config.yaml.example to src/config.yaml and update values for:
 - mqtt_keepalive
 - mqtt_client_id
 
-Then copy config.yaml to the Pico main folder (next to main.py).
+## 4. Copy Files to the Pico
+Copy these files to the Pico root:
+- `src/main.py`
+- `src/config.yaml`
 
-## 4. Copy main.py onto the target
-From Thonny, go to "File...Save as...", select the Raspberry Pi Pico and save the file to the main folder
+## 5. Reboot and Verify
+Power cycle the Pico after copying files.
 
-# Additional Notes
+The script is designed for headless operation and will:
+- retry WiFi and MQTT with bounded backoff
+- use watchdog recovery
+- publish periodic status heartbeat data
 
-## Home Assistant Setup
-The configuratin.yaml file in Home Assistant must be updated to connect the MQTT topics to Home Assistant
-### Current MQTT Topic List
-- /home/inside/temperature
-- /home/outside/temperature
-- /home/outside/humidity
-- /home/outside/temperature_deck
-- /home/inside/temperature_bedroom
-- /home/inside/humidity_bedroom
-- /home/inside/temperature_living_room
-- /home/inside/humidity_living_room
+# Home Assistant Setup
+The `configuration.yaml` file in Home Assistant must be updated to connect MQTT topics.
 
-### Example configuration.yaml
-```
+## Current MQTT Topic List
+- home/outside/temperature_garage
+- home/outside/temperature_fermenter_1
+- home/outside/temperature_fermenter_2
+- home/outside/brewery/tilt/blue/temperature
+- home/outside/brewery/tilt/blue/gravity
+- home/outside/tilt/blue/rssi
+- home/outside/brewery/tilt/blue/data
+- home/outside/brewery/tilt/green/temperature
+- home/outside/brewery/tilt/green/gravity
+- home/outside/tilt/green/rssi
+- home/outside/brewery/tilt/green/data
+- home/outside/brewery/system/status
+
+## Example configuration.yaml
+```yaml
 mqtt:
   sensor:
-    - name: "Inside Temperature"
-      unique_id: "sensor.inside_temp"
-      state_topic: "/home/inside/temperature"  
+    - name: "Garage Temperature"
+      unique_id: "sensor.garage_temperature"
+      state_topic: "home/outside/temperature_garage"
       device_class: "temperature"
       unit_of_measurement: "°F"
       suggested_display_precision: 1
-    - name: "Outside Temperature"
-      unique_id: "sensor.outside_temp"
-      state_topic: "/home/outside/temperature"
-      device_class: "temperature"
-      unit_of_measurement: "°F"
-      suggested_display_precision: 1
-    - name: "Outside Humidity"
-      unique_id: "sensor.outside_humidity"
-      state_topic: "/home/outside/humidity"
-      device_class: "humidity"
-      suggested_display_precision: 1
-    - name: "Inside Temperature - Bedroom"
-      unique_id: "sensor.inside_temp_bedroom"
-      state_topic: "/home/inside/temperature_bedroom"
-      device_class: "temperature"
-      unit_of_measurement: "°F"
-      suggested_display_precision: 1
-    - name: "Inside Humidity - Bedroom"
-      unique_id: "sensor.inside_humidity_bedroom"
-      state_topic: "/home/inside/humidity_bedroom"
-      device_class: "humidity"
-      suggested_display_precision: 1
-```
-## Hardware Setup
-### Schematic (RPI Pico W)
-![Schematic](/documentation/BreweryMonitor-rpi-pico-w.drawio.svg)
 
-### Reference Website
+    - name: "Fermenter 1 Temperature"
+      unique_id: "sensor.fermenter_1_temperature"
+      state_topic: "home/outside/temperature_fermenter_1"
+      device_class: "temperature"
+      unit_of_measurement: "°F"
+      suggested_display_precision: 1
+
+    - name: "Blue Tilt Gravity"
+      unique_id: "sensor.blue_tilt_gravity"
+      state_topic: "home/outside/brewery/tilt/blue/gravity"
+      suggested_display_precision: 3
+
+    - name: "Blue Tilt Temperature"
+      unique_id: "sensor.blue_tilt_temperature"
+      state_topic: "home/outside/brewery/tilt/blue/temperature"
+      device_class: "temperature"
+      unit_of_measurement: "°F"
+      suggested_display_precision: 0
+
+    - name: "Brewery Monitor Uptime"
+      unique_id: "sensor.brewery_monitor_uptime"
+      state_topic: "home/outside/brewery/system/status"
+      value_template: "{{ value_json.uptime_s }}"
+      unit_of_measurement: "s"
+      suggested_display_precision: 0
+```
+
+# Runtime Behavior Summary
+- BLE IRQ handler only queues raw scan data. Parsing and publishing run in the main loop.
+- MQTT reconnect uses bounded retry backoff.
+- Watchdog is enabled for automatic recovery from hangs.
+- Runtime state is persisted in `runtime_state.json` (boot count and reset causes).
+- Status heartbeat is published every `STATUS_PUBLISH_INTERVAL_S` seconds.
+
+# Hardware Setup
+## Schematic (RPI Pico W)
+![Schematic](./documentation/BreweryMonitor-rpi-pico-w.drawio.svg)
+
+## Reference Website
 https://randomnerdtutorials.com/raspberry-pi-pico-ds18b20-micropython/
-Note: The code needed updated to solve some runtime issues but it was a good place to start.
+
+Note: The code has been updated beyond the reference implementation to improve runtime stability and headless operation.
