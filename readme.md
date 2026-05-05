@@ -13,5 +13,5 @@ From Thonny, go to "Tools...Manage packages...", search for "micropython-umqtt.s
 From Thonny, go to "File...Save as...", select the Raspberry Pi Pico and save the files to the main folder
 
 ## Reference Website
-https://randomnerdtutorials.com/raspberry-pi-pico-ds18b20-micropython/
+https://randomnerdtutorials.com/raspberry-pi-pico-ds18b20-micropython/  
 Note: The code needed updated to solve some runtime issues but it was a good place to start.
