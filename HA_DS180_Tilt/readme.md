@@ -6,7 +6,21 @@ Put the device into BOOT mode and copy the correct UF2 file (named something lik
 ## 2. Install the umqtt.simple micropython library
 From Thonny, go to "Tools...Manage packages...", search for "micropython-umqtt.simple" and install it
 
-## 3. Copy main.py onto the target
+## 3. Configure credentials and broker settings
+Copy src/config.yaml.example to src/config.yaml and update values for:
+- wifi_ssid
+- wifi_password
+- hostname
+- mqtt_server
+- mqtt_port
+- mqtt_user
+- mqtt_password
+- mqtt_keepalive
+- mqtt_client_id
+
+Then copy config.yaml to the Pico main folder (next to main.py).
+
+## 4. Copy main.py onto the target
 From Thonny, go to "File...Save as...", select the Raspberry Pi Pico and save the file to the main folder
 
 # Additional Notes

@@ -1,0 +1,3 @@
+# Device-local secrets (do not commit)
+HA_DS180_Tilt/src/config.yaml
+HA_DS180/src/config.yaml
